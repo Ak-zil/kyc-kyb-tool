@@ -1,6 +1,7 @@
 """
 Main FastAPI application instance and router configuration.
 """
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -10,8 +11,21 @@ from app.config import settings
 from app.db.base import Base
 from app.db.session import engine
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+try:
+    # Create database tables if they don't exist
+    # Note: In production, use Alembic migrations instead
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+except Exception as e:
+    logger.error(f"Error creating database tables: {e}")
+    # Continue execution, since tables might be created by Alembic
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -27,8 +41,6 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-
 
 # Include API routers
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
