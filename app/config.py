@@ -20,11 +20,25 @@ class Settings(BaseSettings):
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        if isinstance(v, str) and not v.startswith("["):
+        if isinstance(v, str):
+            # Handle empty string case
+            if not v:
+                return []
+            
+            # Handle JSON list string format
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    import json
+                    return json.loads(v)
+                except Exception:
+                    # If JSON parsing fails, try comma-separated format
+                    return [i.strip() for i in v.split(",")]
+            
+            # Handle comma-separated format
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+        
+        # Already a list or other format
+        return v
 
     # Database configuration
     POSTGRES_SERVER: str

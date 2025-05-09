@@ -10,7 +10,7 @@ from app.config import settings
 
 # Create SQLAlchemy engine with connection pool
 engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URI,
+    str(settings.SQLALCHEMY_DATABASE_URI),  # Convert to string explicitly
     pool_pre_ping=True,  # Test connections before using them
     pool_size=10,        # Connection pool size
     max_overflow=20,     # Maximum overflow connections
